@@ -49,3 +49,21 @@ api_access = true
 # type = "single_line_text_field"
 # name = "Banner title"
 # description = "Enter a title for the banner"
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "title"
+type = "single_line_text_field"
+name = "Protection Fee Label"
+description = "Enter a title for the Protection Fee"
+
+[[extensions.settings.fields]]
+key = "description"
+type = "multi_line_text_field"
+name = "Protection Fee Description"
+description="Enter a description for the Protection Fee"
+
+[[extensions.settings.fields]]
+key = "protection_product_handle"
+type = "single_line_text_field"
+name = "Protection Product Handle"
