@@ -19548,6 +19548,14 @@ ${errorInfo.componentStack}`);
     return subscription.current;
   }
 
+  // node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/cost.mjs
+  function useSubtotalAmount() {
+    return useSubscription(useApi().cost.subtotalAmount);
+  }
+  function useTotalAmount() {
+    return useSubscription(useApi().cost.totalAmount);
+  }
+
   // node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/cart-lines.mjs
   function useCartLines() {
     const {
@@ -19584,6 +19592,8 @@ ${errorInfo.componentStack}`);
     const [adding, setAdding] = (0, import_react18.useState)(false);
     const [showError, setShowError] = (0, import_react18.useState)(false);
     const lines = useCartLines();
+    const subTotalAmount = useSubtotalAmount();
+    const totalAmount = useTotalAmount();
     (0, import_react18.useEffect)(() => {
       fetchProducts();
     }, []);
@@ -19613,31 +19623,22 @@ ${errorInfo.componentStack}`);
         setLoading(true);
         try {
           const { data } = yield query(
-            `query ($first: Int!) {
-          products(first: $first) {
-            nodes {
-              id
-              title
-              images(first:1){
-                nodes {
-                  url
-                }
-              }
-              variants(first: 1) {
-                nodes {
-                  id
-                  price {
-                    amount
-                  }
-                }
+            `query ($handle: String!, $first: Int!) {
+          productByHandle(handle: $handle) {
+            id
+            variants(first: $first) {
+              nodes {
+                id
+                title
               }
             }
           }
         }`,
             {
-              variables: { first: 5 }
+              variables: { handle: ProtectionProductHandle, first: 100 }
             }
           );
+          console.log(data.productByHandle);
           setProducts(data.products.nodes);
         } catch (error) {
           console.error(error);

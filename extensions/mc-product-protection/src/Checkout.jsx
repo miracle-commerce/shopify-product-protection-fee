@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   reactExtension,
+  //Components
   Divider,
   Banner,
   InlineSpacer,
@@ -12,7 +13,9 @@ import {
   Checkbox,
   useApplyCartLinesChange,
   useApi,
-  useSettings
+  useSettings,
+  useSubtotalAmount,
+  useTotalAmount
 } from "@shopify/ui-extensions-react/checkout";
 // Set up the entry point for the extension
 export default reactExtension("purchase.checkout.block.render", () => <App />);
@@ -29,7 +32,8 @@ function App() {
   const [adding, setAdding] = useState(false);
   const [showError, setShowError] = useState(false);
   const lines = useCartLines();
-
+  const subTotalAmount = useSubtotalAmount();
+  const totalAmount = useTotalAmount();
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -59,31 +63,22 @@ function App() {
     setLoading(true);
     try {
       const { data } = await query(
-        `query ($first: Int!) {
-          products(first: $first) {
-            nodes {
-              id
-              title
-              images(first:1){
-                nodes {
-                  url
-                }
-              }
-              variants(first: 1) {
-                nodes {
-                  id
-                  price {
-                    amount
-                  }
-                }
+        `query ($handle: String!, $first: Int!) {
+          productByHandle(handle: $handle) {
+            id
+            variants(first: $first) {
+              nodes {
+                id
+                title
               }
             }
           }
         }`,
         {
-          variables: { first: 5 },
+          variables: { handle: ProtectionProductHandle, first: 100 },
         }
       );
+      console.log(data.productByHandle);
       setProducts(data.products.nodes);
     } catch (error) {
       console.error(error);
