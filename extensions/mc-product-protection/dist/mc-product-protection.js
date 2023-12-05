@@ -19587,7 +19587,7 @@ ${errorInfo.componentStack}`);
     const ProtectionProductHandle = settings.protection_product_handle ? settings.protection_product_handle : "product-protection";
     const { query, i18n } = useApi();
     const applyCartLinesChange = useApplyCartLinesChange();
-    const [products, setProducts] = (0, import_react18.useState)([]);
+    const [product, setProduct] = (0, import_react18.useState)([]);
     const [loading, setLoading] = (0, import_react18.useState)(false);
     const [adding, setAdding] = (0, import_react18.useState)(false);
     const [showError, setShowError] = (0, import_react18.useState)(false);
@@ -19595,7 +19595,7 @@ ${errorInfo.componentStack}`);
     const subTotalAmount = useSubtotalAmount();
     const totalAmount = useTotalAmount();
     (0, import_react18.useEffect)(() => {
-      fetchProducts();
+      fetchProduct();
     }, []);
     (0, import_react18.useEffect)(() => {
       if (showError) {
@@ -19618,7 +19618,7 @@ ${errorInfo.componentStack}`);
         }
       });
     }
-    function fetchProducts() {
+    function fetchProduct() {
       return __async(this, null, function* () {
         setLoading(true);
         try {
@@ -19630,6 +19630,10 @@ ${errorInfo.componentStack}`);
               nodes {
                 id
                 title
+                price {
+                  amount
+                  currencyCode
+                }
               }
             }
           }
@@ -19638,8 +19642,7 @@ ${errorInfo.componentStack}`);
               variables: { handle: ProtectionProductHandle, first: 100 }
             }
           );
-          console.log(data.productByHandle);
-          setProducts(data.products.nodes);
+          setProduct(data.productByHandle);
         } catch (error) {
           console.error(error);
         } finally {
@@ -19656,17 +19659,17 @@ ${errorInfo.componentStack}`);
         }
       );
     }
-    if (!loading && products.length === 0) {
+    if (!loading && !product) {
       return null;
     }
-    const productsOnOffer = getProductsOnOffer(lines, products);
-    if (!productsOnOffer.length) {
+    const variantOnOffer = getVariantOnOffer(lines, subTotalAmount, product);
+    if (!variantOnOffer) {
       return null;
     }
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       ProductOffer,
       {
-        product: productsOnOffer[0],
+        variant: variantOnOffer,
         i18n,
         adding,
         handleAddToCart,
@@ -19689,20 +19692,38 @@ ${errorInfo.componentStack}`);
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Divider2, {})
     ] });
   }
-  function getProductsOnOffer(lines, products) {
-    const cartLineProductVariantIds = lines.map((item) => item.merchandise.id);
-    return products.filter((product) => {
-      const isProductVariantInCart = product.variants.nodes.some(
-        ({ id }) => cartLineProductVariantIds.includes(id)
-      );
-      return !isProductVariantInCart;
-    });
+  function getVariantOnOffer(lines, subTotalAmount, product) {
+    const cartLineProductIds = lines.map((item) => item.merchandise.product.id);
+    let matchedProtectionVariant;
+    if (product && product.variants) {
+      product.variants.nodes.forEach((variantNode) => {
+        const variantNodeTitle = variantNode.title.split("-");
+        if (variantNodeTitle.length > 1) {
+          let minPrice = parseFloat(variantNodeTitle[0]);
+          let maxPrice = parseFloat(variantNodeTitle[1]);
+          if (minPrice && maxPrice && minPrice <= subTotalAmount.amount && maxPrice > subTotalAmount.amount) {
+            matchedProtectionVariant = variantNode;
+          }
+        } else {
+          let minPrice = parseFloat(variantNodeTitle[0]);
+          if (minPrice && minPrice <= subTotalAmount.amount) {
+            matchedProtectionVariant = variantNode;
+          }
+        }
+      });
+      if (matchedProtectionVariant) {
+        return matchedProtectionVariant;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
-  function ProductOffer({ product, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
-    var _a, _b;
-    const { images, title, variants } = product;
-    const renderPrice = i18n.formatCurrency(variants.nodes[0].price.amount);
-    const imageUrl = (_b = (_a = images.nodes[0]) == null ? void 0 : _a.url) != null ? _b : "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_medium.png?format=webp&v=1530129081";
+  function ProductOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
+    console.log(variant);
+    const { id, price } = variant;
+    const renderPrice = i18n.formatCurrency(price.amount);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Divider2, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BlockSpacer2, { spacing: "base" }),
