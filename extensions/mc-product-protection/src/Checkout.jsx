@@ -27,7 +27,7 @@ function App() {
   const ProtectionProductHandle = settings.protection_product_handle ? settings.protection_product_handle : "product-protection";
   const { query, i18n } = useApi();
   const applyCartLinesChange = useApplyCartLinesChange();
-  const [product, setProduct] = useState([]);
+  const [product, setProduct] = useState(false);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [showError, setShowError] = useState(false);

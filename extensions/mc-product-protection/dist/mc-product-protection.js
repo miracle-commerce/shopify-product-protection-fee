@@ -19587,7 +19587,7 @@ ${errorInfo.componentStack}`);
     const ProtectionProductHandle = settings.protection_product_handle ? settings.protection_product_handle : "product-protection";
     const { query, i18n } = useApi();
     const applyCartLinesChange = useApplyCartLinesChange();
-    const [product, setProduct] = (0, import_react18.useState)([]);
+    const [product, setProduct] = (0, import_react18.useState)(false);
     const [loading, setLoading] = (0, import_react18.useState)(false);
     const [adding, setAdding] = (0, import_react18.useState)(false);
     const [showError, setShowError] = (0, import_react18.useState)(false);
