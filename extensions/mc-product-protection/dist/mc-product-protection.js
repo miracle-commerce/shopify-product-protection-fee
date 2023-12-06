@@ -19587,7 +19587,7 @@ ${errorInfo.componentStack}`);
     const ProtectionProductHandle = settings.protection_product_handle ? settings.protection_product_handle : "product-protection";
     const { query, i18n } = useApi();
     const applyCartLinesChange = useApplyCartLinesChange();
-    const [product, setProduct] = (0, import_react18.useState)(false);
+    const [protectionProduct, setProtectionProduct] = (0, import_react18.useState)(false);
     const [loading, setLoading] = (0, import_react18.useState)(false);
     const [adding, setAdding] = (0, import_react18.useState)(false);
     const [showError, setShowError] = (0, import_react18.useState)(false);
@@ -19595,7 +19595,7 @@ ${errorInfo.componentStack}`);
     const subTotalAmount = useSubtotalAmount();
     const totalAmount = useTotalAmount();
     (0, import_react18.useEffect)(() => {
-      fetchProduct();
+      fetchProtectionProduct();
     }, []);
     (0, import_react18.useEffect)(() => {
       if (showError) {
@@ -19618,7 +19618,7 @@ ${errorInfo.componentStack}`);
         }
       });
     }
-    function fetchProduct() {
+    function fetchProtectionProduct() {
       return __async(this, null, function* () {
         setLoading(true);
         try {
@@ -19642,7 +19642,7 @@ ${errorInfo.componentStack}`);
               variables: { handle: ProtectionProductHandle, first: 100 }
             }
           );
-          setProduct(data.productByHandle);
+          setProtectionProduct(data.productByHandle);
         } catch (error) {
           console.error(error);
         } finally {
@@ -19659,17 +19659,20 @@ ${errorInfo.componentStack}`);
         }
       );
     }
-    if (!loading && !product) {
+    if (!loading && !protectionProduct) {
       return null;
     }
-    const variantOnOffer = getVariantOnOffer(lines, subTotalAmount, product);
-    if (!variantOnOffer) {
+    if (protectionProduct) {
+      console.log(protectionProduct);
+    }
+    const protectionVariant = getprotectionVariant(lines, subTotalAmount, protectionProduct);
+    if (!protectionVariant) {
       return null;
     }
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-      ProductOffer,
+      ProtectionOffer,
       {
-        variant: variantOnOffer,
+        variant: protectionVariant,
         i18n,
         adding,
         handleAddToCart,
@@ -19692,11 +19695,10 @@ ${errorInfo.componentStack}`);
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Divider2, {})
     ] });
   }
-  function getVariantOnOffer(lines, subTotalAmount, product) {
-    const cartLineProductIds = lines.map((item) => item.merchandise.product.id);
+  function getprotectionVariant(subTotalAmount, protectionProduct) {
     let matchedProtectionVariant;
-    if (product && product.variants) {
-      product.variants.nodes.forEach((variantNode) => {
+    if (protectionProduct && protectionProduct.variants) {
+      protectionProduct.variants.nodes.forEach((variantNode) => {
         const variantNodeTitle = variantNode.title.split("-");
         if (variantNodeTitle.length > 1) {
           let minPrice = parseFloat(variantNodeTitle[0]);
@@ -19720,7 +19722,7 @@ ${errorInfo.componentStack}`);
       return false;
     }
   }
-  function ProductOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
+  function ProtectionOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
     const { id, price } = variant;
     const renderPrice = i18n.formatCurrency(price.amount);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [

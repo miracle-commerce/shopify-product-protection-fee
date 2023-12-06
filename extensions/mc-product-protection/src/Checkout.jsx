@@ -27,7 +27,7 @@ function App() {
   const ProtectionProductHandle = settings.protection_product_handle ? settings.protection_product_handle : "product-protection";
   const { query, i18n } = useApi();
   const applyCartLinesChange = useApplyCartLinesChange();
-  const [product, setProduct] = useState(false);
+  const [protectionProduct, setProtectionProduct] = useState(false);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -35,7 +35,7 @@ function App() {
   const subTotalAmount = useSubtotalAmount();
   const totalAmount = useTotalAmount();
   useEffect(() => {
-    fetchProduct();
+    fetchProtectionProduct();
   }, []);
 
   useEffect(() => {
@@ -45,21 +45,21 @@ function App() {
     }
   }, [showError]);
 
-    async function handleAddToCart(variantId) {
-      setAdding(true);
-      const result = await applyCartLinesChange({
-        type: 'addCartLine',
-        merchandiseId: variantId,
-        quantity: 1,
-      });
-      setAdding(false);
-      if (result.type === 'error') {
-        setShowError(true);
-        console.error(result.message);
-      }
+  async function handleAddToCart(variantId) {
+    setAdding(true);
+    const result = await applyCartLinesChange({
+      type: 'addCartLine',
+      merchandiseId: variantId,
+      quantity: 1,
+    });
+    setAdding(false);
+    if (result.type === 'error') {
+      setShowError(true);
+      console.error(result.message);
     }
+  }
 
-  async function fetchProduct() {
+  async function fetchProtectionProduct() {
     setLoading(true);
     try {
       const { data } = await query(
@@ -82,7 +82,7 @@ function App() {
           variables: { handle: ProtectionProductHandle, first: 100 },
         }
       );
-      setProduct(data.productByHandle);
+      setProtectionProduct(data.productByHandle);
     } catch (error) {
       console.error(error);
     } finally {
@@ -97,18 +97,22 @@ function App() {
     />;
   }
 
-  if (!loading && !product) {
+  if (!loading && !protectionProduct) {
     return null;
   }
 
-  const variantOnOffer = getVariantOnOffer(lines, subTotalAmount, product);
-  if (!variantOnOffer) {
+  if(protectionProduct){
+    console.log(protectionProduct);
+  }
+
+  const protectionVariant = getprotectionVariant(lines, subTotalAmount, protectionProduct);
+  if (!protectionVariant) {
     return null;
   }
 
   return (
-    <ProductOffer
-      variant={variantOnOffer}
+    <ProtectionOffer
+      variant={protectionVariant}
       i18n={i18n}
       adding={adding}
       handleAddToCart={handleAddToCart}
@@ -135,11 +139,10 @@ function LoadingSkeleton({ProtectionTitle, ProtectionDescription}) {
   );
 }
 
-function getVariantOnOffer(lines, subTotalAmount, product) {
-  const cartLineProductIds = lines.map((item) => item.merchandise.product.id);
+function getprotectionVariant(subTotalAmount, protectionProduct) {
   let matchedProtectionVariant; 
-  if(product && product.variants){
-    product.variants.nodes.forEach((variantNode)=>{
+  if(protectionProduct && protectionProduct.variants){
+    protectionProduct.variants.nodes.forEach((variantNode)=>{
       const variantNodeTitle = variantNode.title.split("-"); 
       if(variantNodeTitle.length > 1){
         let minPrice = parseFloat(variantNodeTitle[0]); 
@@ -165,7 +168,7 @@ function getVariantOnOffer(lines, subTotalAmount, product) {
   }
 }
 
-function ProductOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
+function ProtectionOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
   const { id, price} = variant;
   const renderPrice = i18n.formatCurrency(price.amount);
 
