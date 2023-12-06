@@ -166,16 +166,14 @@ function getVariantOnOffer(lines, subTotalAmount, product) {
 }
 
 function ProductOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
-  console.log(variant);
   const { id, price} = variant;
-
   const renderPrice = i18n.formatCurrency(price.amount);
 
   return (
     <BlockStack spacing='none'>
       <Divider />
       <BlockSpacer spacing="base" />
-      <Checkbox id="protectionSelector" name="applyProtection">{ ProtectionTitle } - $1.35</Checkbox>
+      <Checkbox id="protectionSelector" name="applyProtection">{ ProtectionTitle } - {renderPrice}</Checkbox>
       <InlineStack>
         <InlineSpacer/>
         <Text size="base" appearance="info">{ProtectionDescription}</Text>

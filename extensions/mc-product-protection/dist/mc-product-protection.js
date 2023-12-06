@@ -19721,7 +19721,6 @@ ${errorInfo.componentStack}`);
     }
   }
   function ProductOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
-    console.log(variant);
     const { id, price } = variant;
     const renderPrice = i18n.formatCurrency(price.amount);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [
@@ -19729,7 +19728,8 @@ ${errorInfo.componentStack}`);
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BlockSpacer2, { spacing: "base" }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Checkbox2, { id: "protectionSelector", name: "applyProtection", children: [
         ProtectionTitle,
-        " - $1.35"
+        " - ",
+        renderPrice
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(InlineStack2, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(InlineSpacer2, {}),
