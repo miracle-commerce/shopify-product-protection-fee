@@ -19552,9 +19552,6 @@ ${errorInfo.componentStack}`);
   function useSubtotalAmount() {
     return useSubscription(useApi().cost.subtotalAmount);
   }
-  function useTotalAmount() {
-    return useSubscription(useApi().cost.totalAmount);
-  }
 
   // node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/cart-lines.mjs
   function useCartLines() {
@@ -19593,7 +19590,7 @@ ${errorInfo.componentStack}`);
     const [showError, setShowError] = (0, import_react18.useState)(false);
     const lines = useCartLines();
     const subTotalAmount = useSubtotalAmount();
-    const totalAmount = useTotalAmount();
+    const [removeOldProtection, setRemoveOldProtection] = (0, import_react18.useState)(false);
     (0, import_react18.useEffect)(() => {
       fetchProtectionProduct();
     }, []);
@@ -19603,21 +19600,29 @@ ${errorInfo.componentStack}`);
         return () => clearTimeout(timer);
       }
     }, [showError]);
-    function handleAddToCart(variantId) {
-      return __async(this, null, function* () {
-        setAdding(true);
-        const result = yield applyCartLinesChange({
-          type: "addCartLine",
-          merchandiseId: variantId,
-          quantity: 1
+    (0, import_react18.useEffect)(() => {
+      if (protectionProduct) {
+        const oldProtectionLines = lines.filter((line) => {
+          return line.merchandise.product.id == protectionProduct.id;
         });
-        setAdding(false);
-        if (result.type === "error") {
-          setShowError(true);
-          console.error(result.message);
+        if (oldProtectionLines.length > 0) {
+          applyCartLinesChange({
+            type: "removeCartLine",
+            id: oldProtectionLines[0].id,
+            quantity: oldProtectionLines[0].quantity
+          }).then((result) => {
+            if (result.type === "error") {
+              console.error(result.message);
+              setShowError(true);
+            } else {
+              setRemoveOldProtection(true);
+            }
+          });
+        } else {
+          setRemoveOldProtection(true);
         }
-      });
-    }
+      }
+    }, [protectionProduct]);
     function fetchProtectionProduct() {
       return __async(this, null, function* () {
         setLoading(true);
@@ -19660,27 +19665,25 @@ ${errorInfo.componentStack}`);
       );
     }
     if (!loading && !protectionProduct) {
-      return null;
+      return false;
     }
-    if (protectionProduct) {
-      console.log(protectionProduct);
+    const protectionVariant = getprotectionVariant(subTotalAmount, protectionProduct);
+    if (removeOldProtection) {
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+        ProtectionOffer,
+        {
+          protectionProduct,
+          variant: protectionVariant,
+          lines,
+          i18n,
+          adding,
+          applyCartLinesChange,
+          showError,
+          ProtectionTitle,
+          ProtectionDescription
+        }
+      );
     }
-    const protectionVariant = getprotectionVariant(lines, subTotalAmount, protectionProduct);
-    if (!protectionVariant) {
-      return null;
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-      ProtectionOffer,
-      {
-        variant: protectionVariant,
-        i18n,
-        adding,
-        handleAddToCart,
-        showError,
-        ProtectionTitle,
-        ProtectionDescription
-      }
-    );
   }
   function LoadingSkeleton({ ProtectionTitle, ProtectionDescription }) {
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [
@@ -19722,13 +19725,50 @@ ${errorInfo.componentStack}`);
       return false;
     }
   }
-  function ProtectionOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
+  function ProtectionOffer({ protectionProduct, variant, lines, i18n, adding, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
     const { id, price } = variant;
     const renderPrice = i18n.formatCurrency(price.amount);
+    const [protectionAdded, setProtectionAdded] = (0, import_react18.useState)(true);
+    function handleProtection(e) {
+      console.log(e);
+      if (e) {
+        applyCartLinesChange({
+          type: "addCartLine",
+          merchandiseId: variant.id,
+          quantity: 1
+        }).then((result) => {
+          if (result.type === "error") {
+            console.error(result.message);
+          }
+          setProtectionAdded(true);
+        });
+      } else {
+        const protectionLines = lines.filter((line) => {
+          return line.merchandise.product.id == protectionProduct.id;
+        });
+        if (protectionLines.length > 0) {
+          applyCartLinesChange({
+            type: "removeCartLine",
+            id: protectionLines[0].id,
+            quantity: protectionLines[0].quantity
+          }).then((result) => {
+            if (result.type === "error") {
+              console.error(result.message);
+            }
+            setProtectionAdded(false);
+          });
+        }
+      }
+    }
+    (0, import_react18.useEffect)(() => {
+      if (protectionAdded) {
+        handleProtection(true);
+      }
+    }, []);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Divider2, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BlockSpacer2, { spacing: "base" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Checkbox2, { id: "protectionSelector", name: "applyProtection", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Checkbox2, { id: "protectionSelector", name: "applyProtection", value: protectionAdded, onChange: (e) => handleProtection(e), children: [
         ProtectionTitle,
         " - ",
         renderPrice

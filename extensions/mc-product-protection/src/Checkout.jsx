@@ -33,7 +33,8 @@ function App() {
   const [showError, setShowError] = useState(false);
   const lines = useCartLines();
   const subTotalAmount = useSubtotalAmount();
-  const totalAmount = useTotalAmount();
+  const [removeOldProtection, setRemoveOldProtection] = useState(false);
+
   useEffect(() => {
     fetchProtectionProduct();
   }, []);
@@ -45,19 +46,29 @@ function App() {
     }
   }, [showError]);
 
-  async function handleAddToCart(variantId) {
-    setAdding(true);
-    const result = await applyCartLinesChange({
-      type: 'addCartLine',
-      merchandiseId: variantId,
-      quantity: 1,
-    });
-    setAdding(false);
-    if (result.type === 'error') {
-      setShowError(true);
-      console.error(result.message);
+  useEffect(()=>{
+    if(protectionProduct){
+      const oldProtectionLines = lines.filter((line)=>{
+        return line.merchandise.product.id == protectionProduct.id;
+      })
+      if(oldProtectionLines.length > 0){
+        applyCartLinesChange({
+          type: 'removeCartLine', 
+          id: oldProtectionLines[0].id,
+          quantity: oldProtectionLines[0].quantity
+        }).then((result)=>{
+          if(result.type === 'error'){
+            console.error(result.message);
+            setShowError(true);
+          } else{
+            setRemoveOldProtection(true);
+          }
+        })
+      } else {
+        setRemoveOldProtection(true);
+      }
     }
-  }
+  }, [protectionProduct])
 
   async function fetchProtectionProduct() {
     setLoading(true);
@@ -90,6 +101,8 @@ function App() {
     }
   }
 
+
+
   if (loading) {
     return <LoadingSkeleton 
       ProtectionTitle = {ProtectionTitle}
@@ -98,29 +111,25 @@ function App() {
   }
 
   if (!loading && !protectionProduct) {
-    return null;
+    return false;
   }
 
-  if(protectionProduct){
-    console.log(protectionProduct);
+  const protectionVariant = getprotectionVariant(subTotalAmount, protectionProduct);
+  if(removeOldProtection){
+    return (
+      <ProtectionOffer
+        protectionProduct = {protectionProduct}
+        variant={protectionVariant}
+        lines = {lines}
+        i18n={i18n}
+        adding={adding}
+        applyCartLinesChange={applyCartLinesChange}
+        showError={showError}
+        ProtectionTitle={ProtectionTitle}
+        ProtectionDescription={ProtectionDescription}
+      />
+    );
   }
-
-  const protectionVariant = getprotectionVariant(lines, subTotalAmount, protectionProduct);
-  if (!protectionVariant) {
-    return null;
-  }
-
-  return (
-    <ProtectionOffer
-      variant={protectionVariant}
-      i18n={i18n}
-      adding={adding}
-      handleAddToCart={handleAddToCart}
-      showError={showError}
-      ProtectionTitle={ProtectionTitle}
-      ProtectionDescription={ProtectionDescription}
-    />
-  );
 }
 
 function LoadingSkeleton({ProtectionTitle, ProtectionDescription}) {
@@ -168,15 +177,54 @@ function getprotectionVariant(subTotalAmount, protectionProduct) {
   }
 }
 
-function ProtectionOffer({ variant, i18n, adding, handleAddToCart, showError, ProtectionTitle, ProtectionDescription }) {
+function ProtectionOffer({protectionProduct, variant, lines, i18n, adding, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
   const { id, price} = variant;
   const renderPrice = i18n.formatCurrency(price.amount);
+  const [protectionAdded, setProtectionAdded] = useState(true);
+  function handleProtection(e){
+    console.log(e);
+    if(e){
+      applyCartLinesChange({
+        type: 'addCartLine',
+        merchandiseId: variant.id,
+        quantity: 1,
+      }).then((result)=>{
+        if (result.type === 'error') {
+          console.error(result.message);
+        }
+        setProtectionAdded(true);
+      });
+  
+    } else {
+      const protectionLines = lines.filter((line)=>{
+        return line.merchandise.product.id == protectionProduct.id;
+      })
+      if(protectionLines.length > 0){
+        applyCartLinesChange({
+          type: 'removeCartLine', 
+          id: protectionLines[0].id,
+          quantity: protectionLines[0].quantity
+        }).then((result)=>{
+          if(result.type === 'error'){
+            console.error(result.message);
+          }
+          setProtectionAdded(false);
+        })
+      }
+    }
+  }
+
+  useEffect(()=>{
+    if(protectionAdded){
+      handleProtection(true);
+    }
+  }, [])
 
   return (
     <BlockStack spacing='none'>
       <Divider />
       <BlockSpacer spacing="base" />
-      <Checkbox id="protectionSelector" name="applyProtection">{ ProtectionTitle } - {renderPrice}</Checkbox>
+      <Checkbox id="protectionSelector" name="applyProtection" value={protectionAdded} onChange={e=>handleProtection(e)}>{ ProtectionTitle } - {renderPrice}</Checkbox>
       <InlineStack>
         <InlineSpacer/>
         <Text size="base" appearance="info">{ProtectionDescription}</Text>
