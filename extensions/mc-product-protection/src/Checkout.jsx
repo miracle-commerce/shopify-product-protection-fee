@@ -17,6 +17,7 @@ import {
   useSubtotalAmount,
   useTotalAmount
 } from "@shopify/ui-extensions-react/checkout";
+import { Spinner } from "@shopify/ui-extensions/checkout";
 // Set up the entry point for the extension
 export default reactExtension("purchase.checkout.block.render", () => <App />);
 
@@ -122,7 +123,6 @@ function App() {
         variant={protectionVariant}
         lines = {lines}
         i18n={i18n}
-        adding={adding}
         applyCartLinesChange={applyCartLinesChange}
         showError={showError}
         ProtectionTitle={ProtectionTitle}
@@ -177,12 +177,14 @@ function getprotectionVariant(subTotalAmount, protectionProduct) {
   }
 }
 
-function ProtectionOffer({protectionProduct, variant, lines, i18n, adding, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
+function ProtectionOffer({protectionProduct, variant, lines, i18n, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
   const { id, price} = variant;
   const renderPrice = i18n.formatCurrency(price.amount);
   const [protectionAdded, setProtectionAdded] = useState(true);
+  const [processing, setProcessing] = useState(false);
   function handleProtection(e){
     console.log(e);
+    setProcessing(true);
     if(e){
       applyCartLinesChange({
         type: 'addCartLine',
@@ -191,8 +193,10 @@ function ProtectionOffer({protectionProduct, variant, lines, i18n, adding, apply
       }).then((result)=>{
         if (result.type === 'error') {
           console.error(result.message);
+        }else{
+          setProtectionAdded(true);
+          setProcessing(false);
         }
-        setProtectionAdded(true);
       });
   
     } else {
@@ -209,6 +213,7 @@ function ProtectionOffer({protectionProduct, variant, lines, i18n, adding, apply
             console.error(result.message);
           }
           setProtectionAdded(false);
+          setProcessing(false);
         })
       }
     }
@@ -224,7 +229,7 @@ function ProtectionOffer({protectionProduct, variant, lines, i18n, adding, apply
     <BlockStack spacing='none'>
       <Divider />
       <BlockSpacer spacing="base" />
-      <Checkbox id="protectionSelector" name="applyProtection" value={protectionAdded} onChange={e=>handleProtection(e)}>{ ProtectionTitle } - {renderPrice}</Checkbox>
+      {!processing? <Checkbox id="protectionSelector" name="applyProtection" value={protectionAdded} onChange={e=>handleProtection(e)}>{ ProtectionTitle } - {renderPrice}</Checkbox>:<InlineStack><Spinner/>{ ProtectionTitle } - {renderPrice}</InlineStack>}
       <InlineStack>
         <InlineSpacer/>
         <Text size="base" appearance="info">{ProtectionDescription}</Text>

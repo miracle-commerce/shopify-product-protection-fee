@@ -19145,6 +19145,9 @@
   // node_modules/@shopify/ui-extensions/build/esm/surfaces/checkout/components/InlineSpacer/InlineSpacer.mjs
   var InlineSpacer = createRemoteComponent("InlineSpacer");
 
+  // node_modules/@shopify/ui-extensions/build/esm/surfaces/checkout/components/Spinner/Spinner.mjs
+  var Spinner = createRemoteComponent("Spinner");
+
   // node_modules/@shopify/ui-extensions/build/esm/surfaces/checkout/components/Text/Text.mjs
   var Text = createRemoteComponent("Text");
 
@@ -19676,7 +19679,6 @@ ${errorInfo.componentStack}`);
           variant: protectionVariant,
           lines,
           i18n,
-          adding,
           applyCartLinesChange,
           showError,
           ProtectionTitle,
@@ -19725,12 +19727,14 @@ ${errorInfo.componentStack}`);
       return false;
     }
   }
-  function ProtectionOffer({ protectionProduct, variant, lines, i18n, adding, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
+  function ProtectionOffer({ protectionProduct, variant, lines, i18n, applyCartLinesChange, showError, ProtectionTitle, ProtectionDescription }) {
     const { id, price } = variant;
     const renderPrice = i18n.formatCurrency(price.amount);
     const [protectionAdded, setProtectionAdded] = (0, import_react18.useState)(true);
+    const [processing, setProcessing] = (0, import_react18.useState)(false);
     function handleProtection(e) {
       console.log(e);
+      setProcessing(true);
       if (e) {
         applyCartLinesChange({
           type: "addCartLine",
@@ -19739,8 +19743,10 @@ ${errorInfo.componentStack}`);
         }).then((result) => {
           if (result.type === "error") {
             console.error(result.message);
+          } else {
+            setProtectionAdded(true);
+            setProcessing(false);
           }
-          setProtectionAdded(true);
         });
       } else {
         const protectionLines = lines.filter((line) => {
@@ -19756,6 +19762,7 @@ ${errorInfo.componentStack}`);
               console.error(result.message);
             }
             setProtectionAdded(false);
+            setProcessing(false);
           });
         }
       }
@@ -19768,7 +19775,12 @@ ${errorInfo.componentStack}`);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(BlockStack2, { spacing: "none", children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Divider2, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BlockSpacer2, { spacing: "base" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Checkbox2, { id: "protectionSelector", name: "applyProtection", value: protectionAdded, onChange: (e) => handleProtection(e), children: [
+      !processing ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Checkbox2, { id: "protectionSelector", name: "applyProtection", value: protectionAdded, onChange: (e) => handleProtection(e), children: [
+        ProtectionTitle,
+        " - ",
+        renderPrice
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(InlineStack2, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Spinner, {}),
         ProtectionTitle,
         " - ",
         renderPrice
