@@ -19701,19 +19701,21 @@ ${errorInfo.componentStack}`);
     ] });
   }
   function getprotectionVariant(subTotalAmount, protectionProduct) {
+    console.log(subTotalAmount);
     let matchedProtectionVariant;
+    const subTotalPrice = subTotalAmount.amount;
     if (protectionProduct && protectionProduct.variants) {
       protectionProduct.variants.nodes.forEach((variantNode) => {
         const variantNodeTitle = variantNode.title.split("-");
         if (variantNodeTitle.length > 1) {
           let minPrice = parseFloat(variantNodeTitle[0]);
           let maxPrice = parseFloat(variantNodeTitle[1]);
-          if (minPrice && maxPrice && minPrice <= subTotalAmount.amount && maxPrice > subTotalAmount.amount) {
+          if (minPrice <= subTotalPrice && maxPrice > subTotalPrice) {
             matchedProtectionVariant = variantNode;
           }
         } else {
           let minPrice = parseFloat(variantNodeTitle[0]);
-          if (minPrice && minPrice <= subTotalAmount.amount) {
+          if (minPrice && minPrice <= subTotalPrice) {
             matchedProtectionVariant = variantNode;
           }
         }
@@ -19733,7 +19735,6 @@ ${errorInfo.componentStack}`);
     const [protectionAdded, setProtectionAdded] = (0, import_react18.useState)(true);
     const [processing, setProcessing] = (0, import_react18.useState)(false);
     function handleProtection(e) {
-      console.log(e);
       setProcessing(true);
       if (e) {
         applyCartLinesChange({

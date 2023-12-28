@@ -30,12 +30,10 @@ function App() {
   const applyCartLinesChange = useApplyCartLinesChange();
   const [protectionProduct, setProtectionProduct] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [adding, setAdding] = useState(false);
   const [showError, setShowError] = useState(false);
   const lines = useCartLines();
   const subTotalAmount = useSubtotalAmount();
   const [removeOldProtection, setRemoveOldProtection] = useState(false);
-
   useEffect(() => {
     fetchProtectionProduct();
   }, []);
@@ -149,19 +147,21 @@ function LoadingSkeleton({ProtectionTitle, ProtectionDescription}) {
 }
 
 function getprotectionVariant(subTotalAmount, protectionProduct) {
+  console.log(subTotalAmount);
   let matchedProtectionVariant; 
+  const subTotalPrice = subTotalAmount.amount;
   if(protectionProduct && protectionProduct.variants){
     protectionProduct.variants.nodes.forEach((variantNode)=>{
       const variantNodeTitle = variantNode.title.split("-"); 
       if(variantNodeTitle.length > 1){
         let minPrice = parseFloat(variantNodeTitle[0]); 
         let maxPrice = parseFloat(variantNodeTitle[1]); 
-        if(minPrice && maxPrice && minPrice <= subTotalAmount.amount && maxPrice > subTotalAmount.amount){
+        if(minPrice <= subTotalPrice && maxPrice > subTotalPrice){
           matchedProtectionVariant = variantNode; 
         }
       } else {
         let minPrice = parseFloat(variantNodeTitle[0]);
-        if(minPrice && minPrice <= subTotalAmount.amount){
+        if(minPrice && minPrice <= subTotalPrice){
           matchedProtectionVariant = variantNode; 
         }
       }
@@ -183,7 +183,6 @@ function ProtectionOffer({protectionProduct, variant, lines, i18n, applyCartLine
   const [protectionAdded, setProtectionAdded] = useState(true);
   const [processing, setProcessing] = useState(false);
   function handleProtection(e){
-    console.log(e);
     setProcessing(true);
     if(e){
       applyCartLinesChange({
